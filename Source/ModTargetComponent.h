@@ -83,7 +83,7 @@ private:
 class SelectorButton : public juce::ShapeButton
 {
 public:
-    SelectorButton(juce::Colour c, int srcIndex) : juce::ShapeButton("ModSelectButton" + juce::String(srcIndex), c, c, c)
+    SelectorButton(juce::Colour c, int srcIndex) : juce::ShapeButton("ModSelectButton" + juce::String(srcIndex), c, c, c), centerColor(c)
     {
         
     }
@@ -98,12 +98,11 @@ class RemoveButton : public juce::ShapeButton
 public:
     RemoveButton(int srcIndex) : juce::ShapeButton("ModRemoveButton" + juce::String(srcIndex), juce::Colours::black, juce::Colours::black, juce::Colours::black)
     {
-        
+        allColors.add(Color::RGBColor(186, 51, 77), "SatRed");
+        allColors.add(Color::RGBColor(112, 32, 51), "DarkRed");
     }
     ~RemoveButton() {}
     void paintButton(juce::Graphics& g, bool, bool) override;
-private:
-    juce::Colour centerColor;
 };
 
 class SourceButtonGroup : public juce::Component
@@ -140,11 +139,10 @@ public:
     void buttonClicked(juce::Button* b) override;
     void resized() override;
     void paint(juce::Graphics& g) override;
+    int numSources;
     ModDropTarget target;
 private:
-    SourceGroupZone zone;
     SourceButtonGroup* selectedGroup;
-    int numSources;
     juce::OwnedArray<SourceButtonGroup> sources;
     juce::DragAndDropContainer* container;
 };

@@ -22,14 +22,30 @@ SourceButtonGroup::SourceButtonGroup(ModSourceComponent* s, int srcIndex, juce::
 
 void SelectorButton::paintButton(juce::Graphics &g, bool, bool)
 {
+    g.setColour(allColors.getByDesc("destRim"));
+    g.fillEllipse(getLocalBounds().toFloat());
     g.setColour(centerColor);
-    g.fillRect(getLocalBounds());
+    g.fillEllipse(getLocalBounds().toFloat().reduced(3.5f));
 }
 
 void RemoveButton::paintButton(juce::Graphics &g, bool, bool)
 {
-    g.setColour(juce::Colours::red);
-    g.fillRect(getLocalBounds());
+    juce::Path p;
+    auto bounds = getLocalBounds().toFloat();
+    g.setColour(allColors.getByDesc("SatRed"));
+    g.fillEllipse(bounds);
+    g.setColour(allColors.getByDesc("DarkRed"));
+    auto centerX = getWidth() / 2;
+    auto centerY = getHeight() / 2;
+    auto rWidth = bounds.getWidth() * 0.2f;
+    auto rLength = bounds.getHeight() * 0.8f;
+    auto fRadius = rWidth * 0.3f;
+    g.saveState();
+    p.addRoundedRectangle(centerX - (rWidth / 2.0f), centerY - (rLength / 2.0f), rWidth, rLength, fRadius);
+    p.addRoundedRectangle(centerX - (rLength / 2.0f), centerY - (rWidth / 2.0f), rLength, rWidth, fRadius);
+    g.addTransform(juce::AffineTransform::rotation(juce::MathConstants<float>::halfPi / 2, centerX, centerY));
+    g.fillPath(p);
+    g.restoreState();
 }
 
 void SourceButtonGroup::resized()
@@ -41,16 +57,13 @@ void SourceButtonGroup::resized()
 }
  void SourceButtonGroup::paint(juce::Graphics &g)
 {
-    auto area = getLocalBounds();
-    g.setColour(background);
-    g.fillRect(area);
+   
 }
 
 ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSources(0), target(c, this), container(c)
 {
     selectedGroup = nullptr;
     addAndMakeVisible(&target);
-    addAndMakeVisible(&zone);
     target.toFront(true);
 }
 
@@ -79,12 +92,11 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
 
 void ModTargetComponent::resized()
 {
-    zone.setBounds(getLocalBounds());
-    auto n = zone.getHeight() / 3;
+    auto n = getHeight() / 3;
     if(sources.size() > 0)
     {
         for(auto* i : sources)
-            i->setBounds(zone.getBounds());
+            i->setBounds(getLocalBounds());
     }
     target.setBounds(0, n, n, n);
     target.toFront(true);
@@ -93,6 +105,5 @@ void ModTargetComponent::resized()
 
 void ModTargetComponent::paint(juce::Graphics &g)
 {
-    g.setColour(juce::Colours::blue);
-    g.fillAll();
+    
 }
