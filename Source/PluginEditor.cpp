@@ -15,6 +15,7 @@ DragDropModulationSystemAudioProcessorEditor::DragDropModulationSystemAudioProce
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+    addAndMakeVisible(&container);
     setSize (800, 600);
 }
 
@@ -31,6 +32,7 @@ void DragDropModulationSystemAudioProcessorEditor::paint (juce::Graphics& g)
 
 void DragDropModulationSystemAudioProcessorEditor::resized()
 {
+    container.setBounds(0, 0, 800, 600);
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 }

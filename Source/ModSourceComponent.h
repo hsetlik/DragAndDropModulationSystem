@@ -43,9 +43,7 @@ public:
     }
     void mouseDown(const juce::MouseEvent& e) override
     {
-        auto p = juce::DragAndDropContainer::findParentDragContainerFor(this);
-        p->startDragging(sourceId, this);
-        
+        juce::DragAndDropContainer::findParentDragContainerFor(this)->startDragging(sourceId, this);
     }
     juce::Colour getColor()
     {
