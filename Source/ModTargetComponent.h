@@ -36,7 +36,6 @@ public:
             newSource = sourceComp;
             hiddenButton.triggerClick();
         }
-        toFront(true);
     }
     void setColor(const char* d)
     {

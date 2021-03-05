@@ -19,7 +19,7 @@ SourceButtonGroup::SourceButtonGroup(ModSourceComponent* s, int srcIndex, juce::
     allColors.add(Color::RGBColor(38, 48, 55), "slateBkg");
     
     background = allColors.getByDesc("slateBkg");
-    setInterceptsMouseClicks(true, true);
+    setInterceptsMouseClicks(false, true);
 }
 
 void SelectorButton::paintButton(juce::Graphics &g, bool, bool)
@@ -103,8 +103,10 @@ void SourceButtonGroup::resized()
 
 ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSources(0), target(c, this), container(c)
 {
+    setInterceptsMouseClicks(true, true);
     selectedGroup = nullptr;
     addAndMakeVisible(&target);
+    //addMouseListener(this, true);
     target.toFront(true);
     targetColors.add(Color::monochromeFrom(Color::RGBColor(169, 179, 193)));
 }
@@ -122,22 +124,22 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
     else if ((rem = dynamic_cast<RemoveButton*>(b)))
     {
         auto src = dynamic_cast<SourceButtonGroup*>(rem->getParentComponent());
-        if(selectedGroup == src)
-        {
-            if(sources.size() > 0)
-                selectedGroup = sources.getLast();
-            else
-                selectedGroup = nullptr;
-        }
-        sources.removeObject(src);
-        --numSources;
-        int ind = 1;
-        for(auto i : sources)
-        {
-            i->setIndex(ind);
-            ++ind;
-        }
-        repaint();
+            if(selectedGroup == src)
+            {
+                if(sources.size() > 0)
+                    selectedGroup = sources.getLast();
+                else
+                    selectedGroup = nullptr;
+            }
+            sources.removeObject(src);
+            --numSources;
+            int ind = 1;
+            for(auto i : sources)
+            {
+                i->setIndex(ind);
+                ++ind;
+            }
+            repaint();
     }
     else
     {
@@ -161,7 +163,6 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
             }
         }
     }
-    //printf("Num sources: %d\n", numSources);
     resized();
 }
 
@@ -186,16 +187,7 @@ void ModTargetComponent::resized()
     }
     if(validSelected)
     {
-        /*
-        for(auto* i : sources)
-        {
-            if(i != selectedGroup)
-                if(sources.indexOf(i) > sources.indexOf(selectedGroup))
-                    sources.swap(sources.indexOf(i), sources.indexOf(selectedGroup));
-        }
-        */
         selectedGroup->toFront(true);
-        selectedGroup->setBackground(targetColors.getByDesc("ColorL0"));
     }
     target.setBounds(getWidth() / 3, getHeight() / 3, getHeight() / 3, getHeight() / 3);
     target.toFront(true);
