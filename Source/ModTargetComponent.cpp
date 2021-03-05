@@ -19,6 +19,7 @@ SourceButtonGroup::SourceButtonGroup(ModSourceComponent* s, int srcIndex, juce::
     allColors.add(Color::RGBColor(38, 48, 55), "slateBkg");
     
     background = allColors.getByDesc("slateBkg");
+    setInterceptsMouseClicks(true, true);
 }
 
 void SelectorButton::paintButton(juce::Graphics &g, bool, bool)
@@ -105,19 +106,20 @@ ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSourc
     selectedGroup = nullptr;
     addAndMakeVisible(&target);
     target.toFront(true);
+    targetColors.add(Color::monochromeFrom(Color::RGBColor(169, 179, 193)));
 }
 
 void ModTargetComponent::buttonClicked(juce::Button *b)
 {
     SelectorButton* sel;
+    RemoveButton* rem;
     if((sel = dynamic_cast<SelectorButton*>(b)))
     {
         auto src = dynamic_cast<SourceButtonGroup*>(sel->getParentComponent());
         selectedGroup = src;
-        selectedGroup->toFront(true);
+        printf("Group %d selected\n", sources.indexOf(selectedGroup));
     }
-    RemoveButton* rem;
-    if((rem = dynamic_cast<RemoveButton*>(b)))
+    else if ((rem = dynamic_cast<RemoveButton*>(b)))
     {
         auto src = dynamic_cast<SourceButtonGroup*>(rem->getParentComponent());
         if(selectedGroup == src)
@@ -159,7 +161,7 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
             }
         }
     }
-    printf("Num sources: %d\n", numSources);
+    //printf("Num sources: %d\n", numSources);
     resized();
 }
 
@@ -172,10 +174,11 @@ void ModTargetComponent::resized()
         for(auto* i : sources)
         {
             auto colorId = "ColorL" + juce::String(count);
-            auto color = allColors.getByDesc(colorId);
+            auto color = targetColors.getByDesc(colorId);
             i->setBackground(color);
             i->setBounds(0, 0, getWidth(), getHeight());
             i->resized();
+            i->buttonsToFront();
             if(i == selectedGroup)
                 validSelected = true;
             ++count;
@@ -183,7 +186,16 @@ void ModTargetComponent::resized()
     }
     if(validSelected)
     {
+        /*
+        for(auto* i : sources)
+        {
+            if(i != selectedGroup)
+                if(sources.indexOf(i) > sources.indexOf(selectedGroup))
+                    sources.swap(sources.indexOf(i), sources.indexOf(selectedGroup));
+        }
+        */
         selectedGroup->toFront(true);
+        selectedGroup->setBackground(targetColors.getByDesc("ColorL0"));
     }
     target.setBounds(getWidth() / 3, getHeight() / 3, getHeight() / 3, getHeight() / 3);
     target.toFront(true);

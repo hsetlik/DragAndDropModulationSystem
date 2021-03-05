@@ -119,6 +119,11 @@ public:
     {
         return sourceComp->getId();
     }
+    void buttonsToFront()
+    {
+        closeButton.toFront(true);
+        selButton.toFront(true);
+    }
     void setBackground(juce::Colour bkgnd) {background = bkgnd;}
     void setIndex(int v) {sourceIndex = v;}
 private:
@@ -145,4 +150,5 @@ private:
     SourceButtonGroup* selectedGroup;
     juce::OwnedArray<SourceButtonGroup> sources;
     juce::DragAndDropContainer* container;
+    ColorSet targetColors;
 };
