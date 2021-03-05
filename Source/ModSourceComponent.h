@@ -45,6 +45,10 @@ public:
     {
         juce::DragAndDropContainer::findParentDragContainerFor(this)->startDragging(sourceId, this);
     }
+    void setColor(juce::Colour n)
+    {
+        centerColor = n;
+    }
     juce::Colour getColor()
     {
         return centerColor;

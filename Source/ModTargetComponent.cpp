@@ -17,12 +17,13 @@ SourceButtonGroup::SourceButtonGroup(ModSourceComponent* s, int srcIndex, juce::
     closeButton.addListener(l);
     selButton.addListener(l);
     allColors.add(Color::RGBColor(38, 48, 55), "slateBkg");
+    
     background = allColors.getByDesc("slateBkg");
 }
 
 void SelectorButton::paintButton(juce::Graphics &g, bool, bool)
 {
-    g.setColour(allColors.getByDesc("destRim"));
+    g.setColour(allColors.getByDesc("darkRim"));
     g.fillEllipse(getLocalBounds().toFloat());
     g.setColour(centerColor);
     g.fillEllipse(getLocalBounds().toFloat().reduced(3.5f));
@@ -35,8 +36,8 @@ void RemoveButton::paintButton(juce::Graphics &g, bool, bool)
     g.setColour(allColors.getByDesc("SatRed"));
     g.fillEllipse(bounds);
     g.setColour(allColors.getByDesc("DarkRed"));
-    auto centerX = getWidth() / 2;
-    auto centerY = getHeight() / 2;
+    auto centerX = getBounds().toFloat().getWidth() / 2.0f;
+    auto centerY = getBounds().toFloat().getHeight() / 2;
     auto rWidth = bounds.getWidth() * 0.2f;
     auto rLength = bounds.getHeight() * 0.8f;
     auto fRadius = rWidth * 0.3f;
@@ -51,13 +52,52 @@ void RemoveButton::paintButton(juce::Graphics &g, bool, bool)
 void SourceButtonGroup::resized()
 {
     //reserve the middle third of the component for the drag/drop target
-    auto n = getHeight() / 3;
-    closeButton.setBounds(0, 0, n, n);
-    selButton.setBounds(0, 2 * n, n, n);
+    auto n = getBounds().toFloat().getWidth() /  9.0f;
+    closeButton.setBounds(4.0f * n, 1.8f * n, n, n);
+    //determine the position of selector based on number of sources
+    //distance from center of target to Center  selButton is always (1.5 * n) + n / 2 = 2 * n
+    auto increment = juce::MathConstants<float>::twoPi / 10;
+    auto angle = sourceIndex * increment;
+    auto fortyFive = increment * 1.5f;
+    //center of the component
+    auto xCenter = 4.5f * n;
+    auto yCenter = 4.5f * n;
+    selButton.setBounds(4.0f * n, 6.2f * n, n, n);
+    closeButton.setTransform(juce::AffineTransform::rotation(fortyFive, xCenter, yCenter));
+    selButton.setTransform(juce::AffineTransform::rotation(angle, xCenter, yCenter));
 }
  void SourceButtonGroup::paint(juce::Graphics &g)
 {
-   
+    juce::Path center;
+    g.setColour(background);
+    auto n = getBounds().toFloat().getWidth() /  9.0f;
+    center.addEllipse(selButton.getBounds().toFloat().expanded(0.1f * n));
+    auto selBounds = selButton.getBounds().toFloat().expanded(0.1f * n);
+    center.startNewSubPath(selBounds.getX(), selBounds.getY() + (selBounds.getHeight() / 2));
+    auto targetBounds = juce::Rectangle<float> {3.0f * n, 3.0f * n, 3.0f * n, 3.0f * n};
+    juce::Path middle;
+    middle.addEllipse(targetBounds.expanded(0.2f * n));
+    g.fillPath(middle);
+    center.lineTo(targetBounds.getX() + n, 4.5f * n);
+    center.lineTo(targetBounds.getRight() - n, 4.5f * n);
+    center.lineTo(selBounds.getRight(), selBounds.getY() + (selBounds.getHeight() / 2));
+    center.closeSubPath();
+    
+    auto increment = juce::MathConstants<float>::twoPi / 10;
+    auto angle = sourceIndex * increment;
+    center.applyTransform(juce::AffineTransform::rotation(angle, getWidth() / 2.0f, getWidth() / 2.0f));
+    g.fillPath(center);
+    juce::Path close;
+    auto closeBounds = closeButton.getBounds().toFloat().expanded(0.2f * n);
+    close.addEllipse(closeBounds);
+    close.startNewSubPath(closeBounds.getX(), closeBounds.getY() + (closeBounds.getHeight() / 2.0f));
+    close.lineTo(closeBounds.getRight(), closeBounds.getY() + (closeBounds.getHeight() / 2.0f));
+    close.lineTo(targetBounds.getRight() - n, 4.5f * n);
+    close.lineTo(targetBounds.getX() + n, 4.5f * n);
+    close.closeSubPath();
+    close.applyTransform(juce::AffineTransform::rotation(increment * 1.5f, getWidth() / 2.0f, getWidth() / 2.0f));
+    g.fillPath(close);
+    
 }
 
 ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSources(0), target(c, this), container(c)
@@ -74,36 +114,83 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
     {
         auto src = dynamic_cast<SourceButtonGroup*>(sel->getParentComponent());
         selectedGroup = src;
+        selectedGroup->toFront(true);
     }
     RemoveButton* rem;
     if((rem = dynamic_cast<RemoveButton*>(b)))
     {
         auto src = dynamic_cast<SourceButtonGroup*>(rem->getParentComponent());
+        if(selectedGroup == src)
+        {
+            if(sources.size() > 0)
+                selectedGroup = sources.getLast();
+            else
+                selectedGroup = nullptr;
+        }
         sources.removeObject(src);
+        --numSources;
+        int ind = 1;
+        for(auto i : sources)
+        {
+            i->setIndex(ind);
+            ++ind;
+        }
+        repaint();
     }
     else
     {
-        ++numSources;
-        sources.add(new SourceButtonGroup(target.getNewSource(), numSources, this));
-        addAndMakeVisible(sources.getLast());
-        resized();
+        if(sources.size() == 0) //don't need to check for duplicates if there are 0 sources
+        {
+            ++numSources;
+            sources.add(new SourceButtonGroup(target.getNewSource(), numSources, this));
+            addAndMakeVisible(sources.getLast());
+        }
+        else //check for duplicates
+        {
+            bool added = false;
+            for(auto i : sources)
+                if(i->getId() == target.getNewSource()->getId())
+                    added = true;
+            if(!added)
+            {
+                ++numSources;
+                sources.add(new SourceButtonGroup(target.getNewSource(), numSources, this));
+                addAndMakeVisible(sources.getLast());
+            }
+        }
     }
+    printf("Num sources: %d\n", numSources);
+    resized();
 }
 
 void ModTargetComponent::resized()
 {
-    auto n = getHeight() / 3;
+    bool validSelected = false;
     if(sources.size() > 0)
     {
+        int count = 0;
         for(auto* i : sources)
-            i->setBounds(getLocalBounds());
+        {
+            auto colorId = "ColorL" + juce::String(count);
+            auto color = allColors.getByDesc(colorId);
+            i->setBackground(color);
+            i->setBounds(0, 0, getWidth(), getHeight());
+            i->resized();
+            if(i == selectedGroup)
+                validSelected = true;
+            ++count;
+        }
     }
-    target.setBounds(0, n, n, n);
+    if(validSelected)
+    {
+        selectedGroup->toFront(true);
+    }
+    target.setBounds(getWidth() / 3, getHeight() / 3, getHeight() / 3, getHeight() / 3);
     target.toFront(true);
 }
 
 
 void ModTargetComponent::paint(juce::Graphics &g)
 {
-    
+
 }

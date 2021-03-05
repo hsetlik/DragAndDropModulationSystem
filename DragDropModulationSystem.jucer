@@ -5,6 +5,8 @@
               jucerFormatVersion="1">
   <MAINGROUP id="ZSEglb" name="DragDropModulationSystem">
     <GROUP id="{5335750E-9D21-A66D-8A32-935FE9ADFC2D}" name="Source">
+      <FILE id="jiXJdn" name="CustomLnFs.cpp" compile="1" resource="0" file="Source/CustomLnFs.cpp"/>
+      <FILE id="DJrRfq" name="CustomLnFs.h" compile="0" resource="0" file="Source/CustomLnFs.h"/>
       <FILE id="Wx5ZkY" name="DragDropContainer.cpp" compile="1" resource="0"
             file="Source/DragDropContainer.cpp"/>
       <FILE id="pGkvuO" name="DragDropContainer.h" compile="0" resource="0"

@@ -15,6 +15,7 @@ DragDropModulationSystemAudioProcessorEditor::DragDropModulationSystemAudioProce
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
+    allColors.add(Color::RGBColor(204, 203, 49), "sourceYellow");
     addAndMakeVisible(&container);
     setSize (800, 600);
 }

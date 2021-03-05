@@ -63,7 +63,7 @@ struct ColorSet {
             add(i);
         }
     }
-    juce::Colour getByDesc(juce::String& d)
+    juce::Colour getByDesc(juce::String d)
     {
         for(auto i : colors)
         {
@@ -158,17 +158,18 @@ struct Color
         return set;
     }
     
-    static ColorSet monochromeFrom(juce::Colour center, bool skewSaturation=false)
+    static ColorSet monochromeFrom(juce::Colour center, bool skewSaturation=false, juce::String prefix="")
     {
-        auto fHue = center.getHue() * 360;
-        auto fSat = center.getSaturationHSL();
+        auto fHue = center.getHue();
+        auto fSat = center.getSaturation();
+        auto fLgt = center.getLightness();
+        auto increment = (fLgt - 0.1f) / 5.0f; //note: center color must have a lightness value grater than 0.1 to start
         ColorSet set;
         for(int i = 0; i < 5; ++i)
         {
-            auto fLgt = i * 0.2f;
             if(skewSaturation)
                 fSat = 0.15f + (0.12 * i);
-           set.add(juce::Colour(fHue, fSat, fLgt, 1.0f), "ColorL" + juce::String(i + 1));
+           set.add(juce::Colour(fHue, fSat, (fLgt - (i * increment)), 1.0f), prefix + "ColorL" + juce::String(i));
         }
         return set;
     }

@@ -23,8 +23,10 @@ public:
         hiddenButton.setVisible(false);
         allColors.add(Color::RGBColor(52, 77, 96), "destDefault");
         centerColor = allColors.getByDesc("destDefault");
-        allColors.add(Color::RGBColor(37, 49, 53), "destRim");
-        rimColor = allColors.getByDesc("destRim");
+        allColors.add(Color::RGBColor(169, 179, 193), "paleBkg");
+        allColors.add(Color::RGBColor(37, 49, 53), "darkRim");
+        rimColor = allColors.getByDesc("paleBkg");
+        
     }
     void itemDropped(const juce::DragAndDropTarget::SourceDetails &dragSourceDetails) override
     {
@@ -73,6 +75,7 @@ public:
         return false;
     }
 private:
+    
     juce::Colour rimColor;
     juce::Colour centerColor;
     juce::TextButton hiddenButton;
@@ -112,6 +115,12 @@ public:
     ~SourceButtonGroup() {}
     void resized() override;
     void paint(juce::Graphics& g) override;
+    juce::String getId()
+    {
+        return sourceComp->getId();
+    }
+    void setBackground(juce::Colour bkgnd) {background = bkgnd;}
+    void setIndex(int v) {sourceIndex = v;}
 private:
     juce::Colour background;
     ModSourceComponent* sourceComp;
@@ -119,16 +128,6 @@ private:
     SelectorButton selButton;
     RemoveButton closeButton;
     
-};
-
-class SourceGroupZone : public juce::Component
-{
-public:
-    SourceGroupZone()
-    {
-        
-    }
-    ~SourceGroupZone() {}
 };
 
 class ModTargetComponent : public juce::Component, juce::Button::Listener
@@ -142,6 +141,7 @@ public:
     int numSources;
     ModDropTarget target;
 private:
+    juce::StringArray allSources;
     SourceButtonGroup* selectedGroup;
     juce::OwnedArray<SourceButtonGroup> sources;
     juce::DragAndDropContainer* container;
