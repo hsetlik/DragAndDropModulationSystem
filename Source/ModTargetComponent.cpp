@@ -10,10 +10,13 @@
 
 #include "ModTargetComponent.h"
 
+
+
 SourceButtonGroup::SourceButtonGroup(ModSourceComponent* s, int srcIndex, juce::Button::Listener* l) : sourceComp(s), sourceIndex(srcIndex), selButton(s->getColor(), srcIndex), closeButton(srcIndex)
 {
     addAndMakeVisible(&closeButton);
     addAndMakeVisible(&selButton);
+    
     closeButton.addListener(l);
     selButton.addListener(l);
     allColors.add(Color::RGBColor(38, 48, 55), "slateBkg");
@@ -105,6 +108,7 @@ ModTargetComponent::ModTargetComponent(juce::DragAndDropContainer* c) : numSourc
 {
     setInterceptsMouseClicks(true, true);
     selectedGroup = nullptr;
+    selectedSlider = nullptr;
     addAndMakeVisible(&target);
     //addMouseListener(this, true);
     target.toFront(true);
@@ -119,6 +123,7 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
     {
         auto src = dynamic_cast<SourceButtonGroup*>(sel->getParentComponent());
         selectedGroup = src;
+        selectedSlider = sliders[sources.indexOf(src)];
         printf("Group %d selected\n", sources.indexOf(selectedGroup));
     }
     else if ((rem = dynamic_cast<RemoveButton*>(b)))
@@ -127,10 +132,18 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
             if(selectedGroup == src)
             {
                 if(sources.size() > 0)
+                {
                     selectedGroup = sources.getLast();
+                    selectedSlider = sliders[sources.indexOf(selectedGroup)];
+                }
                 else
+                {
                     selectedGroup = nullptr;
+                    selectedSlider = nullptr;
+                }
             }
+            auto index = sources.indexOf(src);
+            sliders.remove(index);
             sources.removeObject(src);
             --numSources;
             int ind = 1;
@@ -147,7 +160,9 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
         {
             ++numSources;
             sources.add(new SourceButtonGroup(target.getNewSource(), numSources, this));
+            sliders.add(new DepthSlider(target.getNewSource()));
             addAndMakeVisible(sources.getLast());
+            addAndMakeVisible(sliders.getLast());
         }
         else //check for duplicates
         {
@@ -159,7 +174,9 @@ void ModTargetComponent::buttonClicked(juce::Button *b)
             {
                 ++numSources;
                 sources.add(new SourceButtonGroup(target.getNewSource(), numSources, this));
+                sliders.add(new DepthSlider(target.getNewSource()));
                 addAndMakeVisible(sources.getLast());
+                addAndMakeVisible(sliders.getLast());
             }
         }
     }
@@ -174,6 +191,10 @@ void ModTargetComponent::resized()
         int count = 0;
         for(auto* i : sources)
         {
+            auto n = getWidth() / 9.0f;
+            auto centerBounds = juce::Rectangle<float> {getWidth() / 3.0f, getWidth() / 3.0f, getWidth() / 3.0f, getWidth() / 3.0f};
+            auto sliderBounds = centerBounds.expanded(0.25f * n).toNearestInt();
+            sliders[count]->setBounds(sliderBounds);
             auto colorId = "ColorL" + juce::String(count);
             auto color = targetColors.getByDesc(colorId);
             i->setBackground(color);
@@ -185,12 +206,16 @@ void ModTargetComponent::resized()
             ++count;
         }
     }
-    if(validSelected)
-    {
-        selectedGroup->toFront(true);
-    }
     target.setBounds(getWidth() / 3, getHeight() / 3, getHeight() / 3, getHeight() / 3);
     target.toFront(true);
+    if(validSelected)
+    {
+        selectedGroup->toBehind(&target);
+        
+        selectedSlider->toBehind(&target);
+    }
+    
+   
 }
 
 

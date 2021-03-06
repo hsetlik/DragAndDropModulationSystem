@@ -11,6 +11,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "ModSourceComponent.h"
+#include "CustomLnFs.h"
 
 class ModDropTarget : public juce::Component, public juce::DragAndDropTarget //note:: this base class has to be public
 {
@@ -107,6 +108,26 @@ public:
     void paintButton(juce::Graphics& g, bool, bool) override;
 };
 
+class DepthSlider : public juce::Slider
+{
+public:
+    DepthSlider(ModSourceComponent* c) : sourceComponent(c)
+    {
+        setSliderStyle(juce::Slider::Rotary);
+        setRange(-1.0f, 1.0f);
+        setValue(0.0f);
+        setTextBoxStyle(juce::Slider::NoTextBox, true, 1, 1);
+        setLookAndFeel(&lnf);
+    }
+    ~DepthSlider()
+    {
+        setLookAndFeel(nullptr);
+    }
+private:
+    ModSystemLookAndFeel lnf;
+    ModSourceComponent* sourceComponent;
+};
+
 class SourceButtonGroup : public juce::Component
 {
 public:
@@ -125,6 +146,7 @@ public:
     }
     void setBackground(juce::Colour bkgnd) {background = bkgnd;}
     void setIndex(int v) {sourceIndex = v;}
+
 private:
     juce::Colour background;
     ModSourceComponent* sourceComp;
@@ -133,6 +155,8 @@ private:
     RemoveButton closeButton;
     
 };
+
+
 
 class ModTargetComponent : public juce::Component, juce::Button::Listener
 {
@@ -147,7 +171,9 @@ public:
 private:
     juce::StringArray allSources;
     SourceButtonGroup* selectedGroup;
+    DepthSlider* selectedSlider;
     juce::OwnedArray<SourceButtonGroup> sources;
+    juce::OwnedArray<DepthSlider> sliders;
     juce::DragAndDropContainer* container;
     ColorSet targetColors;
 };

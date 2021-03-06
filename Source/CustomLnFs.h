@@ -10,4 +10,17 @@
 
 #pragma once
 #include <JuceHeader.h>
-
+#include "RgbColor.h"
+class ModSystemLookAndFeel : public juce::LookAndFeel_V4
+{
+public:
+    ModSystemLookAndFeel()
+    {
+        colors.add(Color::RGBColor(125, 126, 129), "dullGray");
+        colors.add(Color::RGBColor(255, 236, 95), "thumbYellow");
+    }
+    void drawRotarySlider (juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
+                           const float rotaryStartAngle, const float rotaryEndAngle, juce::Slider& s) override;
+private:
+    ColorSet colors;
+};
